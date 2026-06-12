@@ -150,6 +150,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (index < 4) {
       slide.dataset.delay = index * 100;
       animateObserver.observe(slide);
+    } else {
+      slide.style.opacity = '1';
+      slide.style.transform = 'translateY(0)';
     }
   });
 
