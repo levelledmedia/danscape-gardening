@@ -622,43 +622,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const lightbox = document.getElementById('lightbox');
   const lightboxImage = document.getElementById('lightboxImage');
   const lightboxClose = document.getElementById('lightboxClose');
-  const lightboxPrev = document.getElementById('lightboxPrev');
-  const lightboxNext = document.getElementById('lightboxNext');
   const portfolioCarouselSlides = document.querySelectorAll('.portfolio-carousel-slide img');
-  const lightboxSlides = Array.from(document.querySelectorAll('.portfolio-carousel-slide:not([data-carousel-clone]) img'))
-    .map((img) => ({
-      src: img.currentSrc || img.src,
-      alt: img.alt
-    }));
-  let currentLightboxIndex = 0;
-
-  function showLightboxImage(index) {
-    if (!lightboxSlides.length) return;
-
-    currentLightboxIndex = (index + lightboxSlides.length) % lightboxSlides.length;
-    const currentImage = lightboxSlides[currentLightboxIndex];
-    lightboxImage.src = currentImage.src;
-    lightboxImage.alt = currentImage.alt;
-  }
 
   portfolioCarouselSlides.forEach(img => {
     img.addEventListener('click', () => {
-      const clickedSource = img.currentSrc || img.src;
-      const matchedIndex = lightboxSlides.findIndex((slide) => slide.src === clickedSource);
-      showLightboxImage(matchedIndex >= 0 ? matchedIndex : 0);
+      lightboxImage.src = img.src;
+      lightboxImage.alt = img.alt;
       lightbox.classList.add('active');
       document.body.style.overflow = 'hidden';
     });
-  });
-
-  lightboxPrev.addEventListener('click', (e) => {
-    e.stopPropagation();
-    showLightboxImage(currentLightboxIndex - 1);
-  });
-
-  lightboxNext.addEventListener('click', (e) => {
-    e.stopPropagation();
-    showLightboxImage(currentLightboxIndex + 1);
   });
 
   lightboxClose.addEventListener('click', () => {
@@ -675,15 +647,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Close on Escape key
   document.addEventListener('keydown', (e) => {
-    if (!lightbox.classList.contains('active')) return;
-
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' && lightbox.classList.contains('active')) {
       lightbox.classList.remove('active');
       document.body.style.overflow = '';
-    } else if (e.key === 'ArrowLeft') {
-      showLightboxImage(currentLightboxIndex - 1);
-    } else if (e.key === 'ArrowRight') {
-      showLightboxImage(currentLightboxIndex + 1);
     }
   });
 
