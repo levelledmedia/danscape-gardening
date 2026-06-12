@@ -145,10 +145,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Portfolio Carousel Slides Animation
+  // Portfolio carousel should only animate the initially visible slides.
   document.querySelectorAll('.portfolio-carousel-slide').forEach((slide, index) => {
-    slide.dataset.delay = index * 100;
-    animateObserver.observe(slide);
+    if (index < 4) {
+      slide.dataset.delay = index * 100;
+      animateObserver.observe(slide);
+    }
   });
 
   // Testimonial Cards Animation (only the first 3 slides for initial page load)
@@ -376,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ========================================
   // Carousel Helpers
   // ========================================
-  function createInfiniteCarousel({ track, prevButton, nextButton, slideSelector }) {
+  function createInfiniteCarousel({ track, prevButton, nextButton, slideSelector, preloadImagesAhead = 0 }) {
     if (!track || !prevButton || !nextButton) return;
     if (track.dataset.carouselInitialized === 'true') return;
 
@@ -419,6 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const getReferenceSlide = () => track.querySelector(`${slideSelector}:not([data-carousel-clone])`);
+    const preloadedImageSources = new Set();
 
     const getHorizontalMargins = (element) => {
       if (!element) return 0;
@@ -435,6 +438,26 @@ document.addEventListener('DOMContentLoaded', function() {
       return slideWidth + getGapSize() + getHorizontalMargins(referenceSlide);
     };
 
+    const preloadUpcomingSlides = () => {
+      if (!preloadImagesAhead) return;
+
+      const logicalIndex = ((currentIndex - clonesPerSide) % totalOriginal + totalOriginal) % totalOriginal;
+      for (let offset = 1; offset <= preloadImagesAhead; offset += 1) {
+        const slide = originalSlides[(logicalIndex + offset) % totalOriginal];
+        if (!slide) continue;
+
+        slide.querySelectorAll('img').forEach((img) => {
+          const source = img.currentSrc || img.src;
+          if (!source || preloadedImageSources.has(source)) return;
+
+          preloadedImageSources.add(source);
+          const preloadImage = new Image();
+          preloadImage.decoding = 'async';
+          preloadImage.src = source;
+        });
+      }
+    };
+
     let currentIndex = clonesPerSide;
     let isTransitioning = false;
 
@@ -444,6 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const offset = -(currentIndex * step);
       track.style.transition = animate ? TRANSITION : 'none';
       track.style.transform = `translateX(${offset}px)`;
+      preloadUpcomingSlides();
     };
 
     updatePosition(false);
@@ -541,7 +565,8 @@ document.addEventListener('DOMContentLoaded', function() {
     track: portfolioTrack,
     prevButton: portfolioPrev,
     nextButton: portfolioNext,
-    slideSelector: '.portfolio-carousel-slide'
+    slideSelector: '.portfolio-carousel-slide',
+    preloadImagesAhead: 6
   });
 
   // ========================================
